@@ -9,11 +9,15 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import CardActions from '@mui/material/CardActions';
+import Alert from '@mui/material/Alert';
 import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
 
 function Login(){
 
   const navigate = useNavigate();
+
+  const [errMsg, setErrMsg] = useState("");
 
   // const currentUser = useSelector(state => state.currentUser);
   const dispatch = useDispatch();
@@ -32,14 +36,17 @@ function Login(){
     }
   }
 
-  function changeUser(){
+  async function changeUser(){
     console.log("CHECK");
-    if(login(username, password)){
+    var loginSucceeded = false;
+    loginSucceeded = await login(username, password);
+    if(loginSucceeded){
       console.log("CORRECT");
       dispatch(changeCurrentUser(username));
       navigate("/");
     }else{
       console.log("NOT");
+      setErrMsg("Could not login, please try again.");
     }
   }
 
@@ -53,22 +60,28 @@ function Login(){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     };
-    var check = await fetch('http://localhost:5001/user/login', options, (res, err) => {
-      if(err){
-        // Properly log error
-        return false;
-      }
-
-      if (res.status === 200) return true;
-
+    var check = await fetch('http://localhost:5001/user/login', options)
+    .then((res) => {
+      if (res.ok) return true;
+      throw new Error("Auth failed");
+    })
+    .catch((err) => {
+      console.log(err);
       return false;
-
     })
     return check;
   }
 
   function register(){
 
+  }
+
+  function FailedMessage(){
+    if(errMsg !== ""){
+      return (
+        <Alert severity='error'>{errMsg}</Alert>
+      )
+    }
   }
 
   return (
@@ -100,6 +113,8 @@ function Login(){
                 <Typography gutterBottom variant="h5" component="div">
                   Login
                 </Typography>
+                <br/>
+                <FailedMessage/>
                 <br/>
                 <TextField onChange={updateUsername} style={{width: "80%"}} id="username-field" label="Username" variant="outlined" />
                 <br/><br/>

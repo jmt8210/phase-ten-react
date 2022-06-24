@@ -20,6 +20,7 @@ const client = new Client({
   database: process.env.PG_DB,
   password: process.env.PG_PASS,
   port: process.env.PG_PORT,
+  user: process.env.PG_USER,
 })
 client.connect()
 
